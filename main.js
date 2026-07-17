@@ -1,5 +1,8 @@
 import { renderShaderCode } from "./render.js";
 import { startResizeObservation } from "./resize.js";
+import { circleStruct } from "./structs.js";
+
+const POLYS_PER_CIRCLE = 10;
 
 const main = async () => {
     const device = await (await navigator.gpu?.requestAdapter( {
@@ -63,13 +66,47 @@ const main = async () => {
         ]
     };
 
+    const circles = circleStruct.createFilledArray([
+        {
+            color: [1, 0, 0, 1],
+            center: [0, 0],
+            radius: .1
+        },
+        {
+            color: [0, 1, 0, 1],
+            center: [.3, .6],
+            radius: .3
+        }
+    ])
+
+    const circleBuffer = device.createBuffer({
+        label: "circleBuffer",
+        size: circles.data.byteLength,
+        usage: GPUBufferUsage.STORAGE |
+               GPUBufferUsage.COPY_DST |
+            //    GPUBufferUsage.COPY_SRC | // used for debugging
+               GPUBufferUsage.VERTEX
+    });
+
+    const renderBindGroup = device.createBindGroup({
+        label: "renderBindGroup",
+        layout: renderPipeline.getBindGroupLayout(0),
+        entries: [
+            {binding: 0, resource: circleBuffer},
+        ]
+    });
+
+    device.queue.writeBuffer(circleBuffer, 0, circles.data);
+
+
     const render = async() => {
         const encoder = device.createCommandEncoder({label: "encoder"});
 
         renderPassDescriptor.colorAttachments[0].view = ctx.getCurrentTexture().createView();
         const renderPass = encoder.beginRenderPass(renderPassDescriptor);
         renderPass.setPipeline(renderPipeline);
-        renderPass.draw(21);
+        renderPass.setBindGroup(0, renderBindGroup);
+        renderPass.draw(33);
         renderPass.end();
 
         const commandBuffer = encoder.finish();
