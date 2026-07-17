@@ -1,8 +1,9 @@
+import { computeShaderCode } from "./compute.js";
 import { renderShaderCode } from "./render.js";
 import { startResizeObservation } from "./resize.js";
 import { circleStruct } from "./structs.js";
 
-const POLYS_PER_CIRCLE = 20;
+const POLYS_PER_CIRCLE = 30;
 
 const main = async () => {
     const device = await (await navigator.gpu?.requestAdapter( {
@@ -33,6 +34,19 @@ const main = async () => {
     ctx.configure( {
         device,
         format: renderFormat
+    });
+
+    const computeModule = device.createShaderModule({
+        label: "compute shader module",
+        code:computeShaderCode
+    })
+    const physicsPipeline = device.createComputePipeline({
+        label: "physics pipeline",
+        layout: "auto",
+        compute: {
+            module: computeModule,
+            entryPoint: "applyPhysics"
+        }
     });
 
     const renderModule = device.createShaderModule({
@@ -68,17 +82,18 @@ const main = async () => {
 
     const circles = circleStruct.createFilledArray([
         {
-            color: [.99, 0., 0., 1.],
-            center: [0, 0],
-            velocity: [.01, .03],
-            radius: .15
-        },
-        {
             color: [0., .98, 0., 1.],
             center: [.3, .6],
-            velocity: [-.05, .08],
+            velocity: [-.001, .001],
             radius: .4
+        },
+        {
+            color: [.99, 0., 0., 1.],
+            center: [0, 0],
+            velocity: [.001, -.003],
+            radius: .15
         }
+
     ])
 
     const circleBuffer = device.createBuffer({
@@ -88,6 +103,14 @@ const main = async () => {
                GPUBufferUsage.COPY_DST |
             //    GPUBufferUsage.COPY_SRC | // used for debugging
                GPUBufferUsage.VERTEX
+    });
+
+    const physicsBindGroup = device.createBindGroup({
+        label: "physicsBindGroup",
+        layout: physicsPipeline.getBindGroupLayout(0),
+        entries: [
+            {binding: 0, resource: circleBuffer},
+        ]
     });
 
     const renderBindGroup = device.createBindGroup({
@@ -103,6 +126,13 @@ const main = async () => {
 
     const render = async() => {
         const encoder = device.createCommandEncoder({label: "encoder"});
+
+        const computePass = encoder.beginComputePass();
+        computePass.setPipeline(physicsPipeline);
+        computePass.setBindGroup(0, physicsBindGroup);
+        computePass.dispatchWorkgroups(circles.count);
+        computePass.end();
+        
 
         renderPassDescriptor.colorAttachments[0].view = ctx.getCurrentTexture().createView();
         const renderPass = encoder.beginRenderPass(renderPassDescriptor);
