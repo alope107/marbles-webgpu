@@ -15,9 +15,14 @@ ${circleStruct.code}
         let id = global_invocation_index(workgroup_id, local_invocation_index, num_workgroups,
                                          1 /* CHANGE ME WHEN WORKGROUP SIZE CHANGES */);
         if(id > arrayLength(&circles)) {return;}
+
+        let gravity = vec2f(0, -.0001);
+        circles[id].velocity += gravity;
+
         circles[id].center += circles[id].velocity;
 
         let wall = 1.;
+        
 
         if(circles[id].center.x > wall - circles[id].radius) {
             circles[id].center.x = wall - circles[id].radius;
