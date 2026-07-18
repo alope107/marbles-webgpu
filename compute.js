@@ -1,12 +1,14 @@
-import { circleStruct } from "./structs.js";
+import { circleStruct, uniformsStruct } from "./structs.js";
 import { global_invocation_index } from "./linear_indexing.js";
 
 export const computeShaderCode = /* wgsl */ `
 ${global_invocation_index}
 ${circleStruct.code}
+${uniformsStruct}
 
 @group(0) @binding(0) var<storage, read> circlesOld : array<Circle>; 
-@group(0) @binding(1) var<storage, read_write> circlesNew : array<Circle>; 
+@group(0) @binding(1) var<storage, read_write> circlesNew : array<Circle>;
+@group(0) @binding(2) var<uniform> uniforms : Uniforms;
 
 // TODO: better workgroup size UPDATE THE GLOBAL INDEX CALC IF CHANGED
 @compute @workgroup_size(1) fn applyPhysics(
@@ -18,7 +20,7 @@ ${circleStruct.code}
         if(id > arrayLength(&circlesOld)) {return;}
 
         let gravity = vec2f(0, -.0001);
-        circlesNew[id].velocity = circlesOld[id].velocity + gravity;
+        circlesNew[id].velocity = circlesOld[id].velocity + uniforms.gravity;
         circlesNew[id].center = circlesOld[id].center + circlesNew[id].velocity;
 
         // Todo: bucketing, momentum?

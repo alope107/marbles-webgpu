@@ -4,6 +4,9 @@ import { startResizeObservation } from "./resize.js";
 import { circleStruct } from "./structs.js";
 import { randCircles } from "./random.js";
 
+let accel = {x: 0, y:-9.8, z:0};
+
+const GRAVITY_FACTOR = 16000;
 const POLYS_PER_CIRCLE = 30;
 const CIRCLE_COUNT = 200;
 const RADIUS = .05;
@@ -102,12 +105,23 @@ const main = async () => {
                GPUBufferUsage.VERTEX
     });
 
+        // TODO: Move this info to structs.js
+    const uniformFloatCount = 2;
+    const uniformData = new Float32Array(uniformFloatCount);
+    const uniformBuffer = device.createBuffer({
+        label: "uniform buffer",
+        size: uniformData.byteLength,
+        usage: GPUBufferUsage.UNIFORM | 
+               GPUBufferUsage.COPY_DST 
+    });
+
     const physicsPingToPongBindGroup = device.createBindGroup({
         label: "physicsPingToPongBindGroup",
         layout: physicsPipeline.getBindGroupLayout(0),
         entries: [
             {binding: 0, resource: circlePingBuffer},
             {binding: 1, resource: circlePongBuffer},
+            {binding: 2, resource: uniformBuffer}
         ]
     });
     const physicsPongToPingBindGroup = device.createBindGroup({
@@ -116,6 +130,7 @@ const main = async () => {
         entries: [
             {binding: 0, resource: circlePongBuffer},
             {binding: 1, resource: circlePingBuffer},
+            {binding: 2, resource: uniformBuffer}
         ]
     });
 
@@ -134,8 +149,11 @@ const main = async () => {
         ]
     });
 
+
+
     device.queue.writeBuffer(circlePingBuffer, 0, circles.data);
     device.queue.writeBuffer(circlePongBuffer, 0, circles.data);
+    device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
 
     let frameCount = 0;
@@ -162,10 +180,35 @@ const main = async () => {
     };
 
     const animationFrame = async (timestamp) => {
+        uniformData[0] = accel.x/GRAVITY_FACTOR;
+        uniformData[1] = accel.y/GRAVITY_FACTOR;
+        device.queue.writeBuffer(uniformBuffer, 0, uniformData);
         render();
         requestAnimationFrame(animationFrame);
     };
     requestAnimationFrame(animationFrame);
 };
 
-main();
+const initializeAccelerometer = async (e) => {
+    document.getElementById("prompt").remove();
+    window.addEventListener("devicemotion", (event) => {
+        let accelInclG = event.accelerationIncludingGravity;
+        if(accelInclG.x != null) {
+            accel.x = accelInclG.x*-1;
+            accel.y = accelInclG.y*-1;
+            accel.z = accelInclG.z;
+        }
+    });
+    main();
+}
+
+// Only need user input if on mobile so accelerometer can be accessed
+// Otherwise just start immedately on desktop
+if(!window.matchMedia('(hover: hover)').matches && window.matchMedia('(pointer: coarse)').matches) {
+    let userPrompt = document.body.appendChild(document.createElement("h1"));
+    userPrompt.innerText = "Press me";
+    userPrompt.id="prompt";
+    userPrompt.addEventListener("pointerup", initializeAccelerometer);
+} else {
+    main();
+}
