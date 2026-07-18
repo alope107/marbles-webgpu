@@ -5,7 +5,7 @@ import { circleStruct } from "./structs.js";
 import { randCircles } from "./random.js";
 
 const POLYS_PER_CIRCLE = 30;
-const CIRCLE_COUNT = 60;
+const CIRCLE_COUNT = 20;
 
 const main = async () => {
     const device = await (await navigator.gpu?.requestAdapter( {

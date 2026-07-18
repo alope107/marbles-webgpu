@@ -31,7 +31,8 @@ ${circleStruct.code}
             let diff = contactDist - dist;
             if(diff > 0) {
                 // TODO: uneven movement
-                circlesNew[id].center += (delta * (diff/contactDist)) / 2.;
+                circlesNew[id].center += (delta * (diff/dist)) / 2;
+                circlesNew[id].velocity += (delta * (diff/dist)) / 2;
             }
         }
 
