@@ -36,20 +36,25 @@ ${circleStruct.code}
             }
         }
 
+        // Treat walls the same way we treat the other circles?
         let wall = 1.;
-        
-
-        if(circlesNew[id].center.x > wall - circlesNew[id].radius) {
-            circlesNew[id].center.x = wall - circlesNew[id].radius;
-        }
-        if(circlesNew[id].center.x < circlesNew[id].radius-wall) {
-            circlesNew[id].center.x = circlesNew[id].radius-wall;
-        }
-        if(circlesNew[id].center.y > wall - circlesNew[id].radius) {
-            circlesNew[id].center.y = wall - circlesNew[id].radius;
-        }
-        if(circlesNew[id].center.y < circlesNew[id].radius-wall) {
-            circlesNew[id].center.y = circlesNew[id].radius-wall;
+        let fakes = array(
+            vec2f(circlesNew[id].center.x, 1),
+            vec2f(circlesNew[id].center.x, -1),
+            vec2f(1, circlesNew[id].center.y),
+            vec2f(-1, circlesNew[id].center.y)
+        );
+        for(var i = 0u; i < 4; i++) {
+            let delta = circlesNew[id].center - fakes[i];
+            let dist = length(delta);
+            // TODO: branchless
+            let contactDist = circlesNew[id].radius;
+            let diff = contactDist - dist;
+            if(diff > 0) {
+                // TODO: uneven movement
+                circlesNew[id].center += (delta * (diff/dist));
+                circlesNew[id].velocity += (delta * (diff/dist));
+            }
         }
     }
 `;
