@@ -2,8 +2,10 @@ import { computeShaderCode } from "./compute.js";
 import { renderShaderCode } from "./render.js";
 import { startResizeObservation } from "./resize.js";
 import { circleStruct } from "./structs.js";
+import { randCircles } from "./random.js";
 
 const POLYS_PER_CIRCLE = 30;
+const CIRCLE_COUNT = 60;
 
 const main = async () => {
     const device = await (await navigator.gpu?.requestAdapter( {
@@ -80,23 +82,7 @@ const main = async () => {
         ]
     };
 
-    const circles = circleStruct.createFilledArray([
-        {
-            color: [0., .98, 0., 1.],
-            center: [.3, .6],
-            velocity: [0, 0],
-            //velocity: [-.005, -.01],
-            radius: .15
-        },
-        {
-            color: [.99, 0., 0., 1.],
-            center: [.2, 0],
-            velocity: [0, 0],
-            //velocity: [.01, -.003],
-            radius: .15
-        }
-
-    ])
+    const circles = randCircles(CIRCLE_COUNT);
 
     const circlePingBuffer = device.createBuffer({
         label: "circlePingBuffer",
