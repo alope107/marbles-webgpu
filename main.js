@@ -5,7 +5,8 @@ import { circleStruct } from "./structs.js";
 import { randCircles } from "./random.js";
 
 const POLYS_PER_CIRCLE = 30;
-const CIRCLE_COUNT = 20;
+const CIRCLE_COUNT = 200;
+const RADIUS = .05;
 
 const main = async () => {
     const device = await (await navigator.gpu?.requestAdapter( {
@@ -82,7 +83,7 @@ const main = async () => {
         ]
     };
 
-    const circles = randCircles(CIRCLE_COUNT);
+    const circles = randCircles(CIRCLE_COUNT, RADIUS);
 
     const circlePingBuffer = device.createBuffer({
         label: "circlePingBuffer",
