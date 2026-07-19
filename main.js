@@ -10,11 +10,12 @@ let pointerLoc = [0, 0];
 let pointerHeldNow = false;
 let pointerHeldLastFrame = false;
 
-const GRAVITY_FACTOR = 18000;
+const PHYSICS_TICKS_PER_FRAME = 3;
+const GRAVITY_FACTOR = 180000;
 const POLYS_PER_CIRCLE = 30;
-const CIRCLE_COUNT = 200;
-const MIN_RADIUS = .05;
-const MAX_RADIUS = .05;
+const CIRCLE_COUNT = 2000;
+const MIN_RADIUS = .015;
+const MAX_RADIUS = .015;
 const EXTRA_SHAKE_POWER=5;
 
 const main = async () => {
@@ -179,12 +180,13 @@ const main = async () => {
     const render = async() => {
         const encoder = device.createCommandEncoder({label: "encoder"});
 
-        const computePass = encoder.beginComputePass();
-        computePass.setPipeline(physicsPipeline);
-        computePass.setBindGroup(0, frameCount % 2 == 0 ? physicsPingToPongBindGroup: physicsPongToPingBindGroup);
-        computePass.dispatchWorkgroups(circles.count);
-        computePass.end();
-        
+        for(let i = 0; i < PHYSICS_TICKS_PER_FRAME; i++) {
+            let computePass = encoder.beginComputePass();
+            computePass.setPipeline(physicsPipeline);
+            computePass.setBindGroup(0, (frameCount + i) % 2 == 0 ? physicsPingToPongBindGroup: physicsPongToPingBindGroup);
+            computePass.dispatchWorkgroups(circles.count);
+            computePass.end();
+        }
 
         renderPassDescriptor.colorAttachments[0].view = ctx.getCurrentTexture().createView();
         const renderPass = encoder.beginRenderPass(renderPassDescriptor);
