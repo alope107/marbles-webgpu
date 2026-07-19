@@ -22,11 +22,7 @@ fn insertionSort(startIdx : u32, // inclusive
                 break;
             }
         }
-        if(j - 1 == i) {
-            i++;
-        } else {
-            i = 0;
-            circlesOld[j-1] = cand;
-        }
+        circlesOld[j-1] = cand;
+        i++;
     }
 }`
