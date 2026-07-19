@@ -11,13 +11,13 @@ ${uniformsStruct.code}
 @group(0) @binding(2) var<uniform> uniforms : Uniforms;
 
 // TODO: better workgroup size UPDATE THE GLOBAL INDEX CALC IF CHANGED
-@compute @workgroup_size(1) fn applyPhysics(
+@compute @workgroup_size(8, 8, 1) fn applyPhysics(
     @builtin(workgroup_id) workgroup_id : vec3<u32>,
     @builtin(local_invocation_index) local_invocation_index: u32,
     @builtin(num_workgroups) num_workgroups: vec3<u32>) {
         let id = global_invocation_index(workgroup_id, local_invocation_index, num_workgroups,
-                                         1 /* CHANGE ME WHEN WORKGROUP SIZE CHANGES */);
-        if(id > arrayLength(&circlesOld)) {return;}
+                                         8*8*1 /* CHANGE ME WHEN WORKGROUP SIZE CHANGES */); // SOMETHING WRONG HERE
+        if(id >= arrayLength(&circlesOld)) {return;}
 
         var newMe = circlesNew[id]; // does this slow down making a copy?
         let oldMe = circlesOld[id];
@@ -76,9 +76,14 @@ ${uniformsStruct.code}
         }
         
         //limit to max speed
-        let maxSpeed = r*50;//.5;
+        let maxSpeed = r*.5;
         let speed = length(newMe.velocity);
         newMe.velocity = select(newMe.velocity, newMe.velocity/speed * maxSpeed, speed > maxSpeed);
+
+        //DEBUG
+        // if(id == arrayLength(&circlesOld) -1) {
+            //newMe.color = vec4f(1., 1., 1., 1.);
+        // }
 
         circlesNew[id] = newMe;
     }

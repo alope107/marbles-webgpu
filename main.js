@@ -10,12 +10,12 @@ let pointerLoc = [0, 0];
 let pointerHeldNow = false;
 let pointerHeldLastFrame = false;
 
-const PHYSICS_TICKS_PER_FRAME = 3;
-const GRAVITY_FACTOR = 180000;
+const PHYSICS_TICKS_PER_FRAME = 4;
+const GRAVITY_FACTOR = 360000;
 const POLYS_PER_CIRCLE = 30;
-const CIRCLE_COUNT = 2500;
-const MIN_RADIUS = .013;
-const MAX_RADIUS = .013;
+const CIRCLE_COUNT = 6000;
+const MIN_RADIUS = .011;
+const MAX_RADIUS = .011;
 const EXTRA_SHAKE_POWER=5;
 
 const main = async () => {
@@ -184,7 +184,7 @@ const main = async () => {
             let computePass = encoder.beginComputePass();
             computePass.setPipeline(physicsPipeline);
             computePass.setBindGroup(0, (frameCount + i) % 2 == 0 ? physicsPingToPongBindGroup: physicsPongToPingBindGroup);
-            computePass.dispatchWorkgroups(circles.count);
+            computePass.dispatchWorkgroups(Math.ceil(circles.count/64)), Math.ceil(circles.count/64, 1);
             computePass.end();
         }
 
