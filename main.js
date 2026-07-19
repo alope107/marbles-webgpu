@@ -14,6 +14,7 @@ const GRAVITY_FACTOR = 16000;
 const POLYS_PER_CIRCLE = 30;
 const CIRCLE_COUNT = 200;
 const RADIUS = .05;
+const EXTRA_SHAKE_POWER=5;
 
 const main = async () => {
     const device = await (await navigator.gpu?.requestAdapter( {
@@ -215,10 +216,11 @@ const initializeAccelerometer = async (e) => {
     document.getElementById("prompt").remove();
     window.addEventListener("devicemotion", (event) => {
         let accelInclG = event.accelerationIncludingGravity;
+        let accelWithoutG = event.acceleration;
         if(accelInclG.x != null) {
-            accel.x = accelInclG.x*-1;
-            accel.y = accelInclG.y*-1;
-            accel.z = accelInclG.z;
+            accel.x = (accelInclG.x +accelWithoutG.x*EXTRA_SHAKE_POWER)*-1;
+            accel.y = (accelInclG.y +accelWithoutG.y*EXTRA_SHAKE_POWER)*-1;
+            accel.z = (accelInclG.z +accelWithoutG.z*EXTRA_SHAKE_POWER);
         }
     });
     main();
