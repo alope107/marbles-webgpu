@@ -39,6 +39,8 @@ ${uniformsStruct.code}
             let diff = contactDist - dist;
             if(diff > 0) {
                 // TODO: uneven movement
+                // TODO: If they are moving in the same direction, less velocity change! If moving in diff, more velocity change
+                // Perhaps use dot product or somesuch?
                 newMe.center += (delta * (diff/dist)) / 2;
                 newMe.velocity += (delta * (diff/dist)) / 2;
             }
@@ -72,6 +74,12 @@ ${uniformsStruct.code}
             newMe.center.y = -wall + r;
             newMe.velocity.y *= -restitution;
         }
+        
+        //limit to max speed
+        let maxSpeed = r*50;//.5;
+        let speed = length(newMe.velocity);
+        newMe.velocity = select(newMe.velocity, newMe.velocity/speed * maxSpeed, speed > maxSpeed);
+
         circlesNew[id] = newMe;
     }
 `;

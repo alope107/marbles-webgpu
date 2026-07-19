@@ -13,9 +13,9 @@ let pointerHeldLastFrame = false;
 const PHYSICS_TICKS_PER_FRAME = 3;
 const GRAVITY_FACTOR = 180000;
 const POLYS_PER_CIRCLE = 30;
-const CIRCLE_COUNT = 2000;
-const MIN_RADIUS = .015;
-const MAX_RADIUS = .015;
+const CIRCLE_COUNT = 2500;
+const MIN_RADIUS = .013;
+const MAX_RADIUS = .013;
 const EXTRA_SHAKE_POWER=5;
 
 const main = async () => {
