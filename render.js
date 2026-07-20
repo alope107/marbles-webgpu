@@ -20,9 +20,20 @@ struct VertexOutput {
     // TODO precompute matrix
     let angle = 2 * PI * f32(vertexIdx) / (2*segments);
 
+    // demoColor
+    let demoColor = vec4f(
+        f32(circle.index)/f32(arrayLength(&circles)),
+        0,
+        0,
+        1 
+    );
+
+
     return VertexOutput(
         vec4f(circle.center + (r * vec2f(cos(angle), sin(angle))), 0, 1.),
-        select(vec4(), circle.color, (vertexIdx & 1) == 0)
+        demoColor
+        // TODO: Go back to this
+        // select(vec4(), circle.color, (vertexIdx & 1) == 0)
     );
 }
 

@@ -8,11 +8,16 @@ export const circleStruct = (() => {
             center: vec2f, // 8 bytes
             velocity: vec2f, // 8 bytes
             radius: f32, // 4 bytes
-            grabbed: u32 // 4b ytes
-            // pad 8 bytes
-        }  // total 48 bytes
+            grabbed: u32, // 4 bytes
+            lowerForce: vec2f, // 8 bytes the sum of the forces applied by the lower indexed 
+            lowerCenter: vec2f, // 8 bytes the desired position pushed by the lower indexed
+            upperForce: vec2f, // 8 bytes the sum of the forces applied by the upper indexed
+            upperCenter: vec2f, // 8 bytes the desired position pushed by the upper indexed
+            index: u32, // 4 bytes
+            // pad 4 bytes
+        }  // total 80 bytes
     `
-    const byteCount = 48;
+    const byteCount = 80;
     const floatCount = byteCount / 4;
     const createEmptyArray = (circleCount) => {
         const data = new ArrayBuffer(byteCount * circleCount);
@@ -23,7 +28,12 @@ export const circleStruct = (() => {
                 centerView: new Float32Array(data, 16),
                 velocityView: new Float32Array(data, 24),
                 radiusView: new Float32Array(data, 32),
-                grabbedView: new Uint32Array(data, 36)
+                grabbedView: new Uint32Array(data, 36),
+                lowerForce: new Float32Array(data, 40),
+                lowerCenter: new Float32Array(data, 48),
+                upperForce: new Float32Array(data, 56),
+                upperCenter: new Float32Array(data, 64),
+                index: new Uint32Array(data, 72),
             },
             count: circleCount
         };
@@ -36,7 +46,7 @@ export const circleStruct = (() => {
             centerView.set(center, i*floatCount);
             velocityView.set(velocity, i*floatCount);
             radiusView.set([radius], i*floatCount);
-            // grabbed and pad set to 0s by default
+            // grabbed, lowers, uppers, index and pad set to 0s by default
         });
         return data;
     };

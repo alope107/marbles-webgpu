@@ -11,6 +11,7 @@ fn insertionSort(startIdx : u32, // inclusive
     for(var i = startIdx; i < endIdx;) {
         // we sort the old version because we'll need those old positions
         let cand = circlesOld[i];
+        circlesOld[i].index = i;
         let candLeft = cand.center.y - cand.radius;
         var j = i+1;
         for(; j < endIdx; j++) {
@@ -18,6 +19,7 @@ fn insertionSort(startIdx : u32, // inclusive
             let otherLeft = other.center.y - other.radius;
             if(candLeft > otherLeft) {
                 circlesOld[j-1] = other;
+                circlesOld[j-1].index = j-1;
             } else {
                 break;
             }
@@ -27,6 +29,7 @@ fn insertionSort(startIdx : u32, // inclusive
         } else {
             i = 0;
             circlesOld[j-1] = cand;
+            circlesOld[j-1].index = j-1;
         }
     }
 }`
