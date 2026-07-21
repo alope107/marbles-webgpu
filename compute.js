@@ -31,6 +31,52 @@ ${uniformsStruct.code}
         }
 }
 
+// TODO: Proper workgroup sizes
+@compute @workgroup_size(1) fn collide(@builtin(workgroup_id) workgroup_id : vec3<u32>,
+    @builtin(local_invocation_index) local_invocation_index: u32,
+    @builtin(num_workgroups) num_workgroups: vec3<u32>) {
+    let id = global_invocation_index(workgroup_id, local_invocation_index, num_workgroups,
+                                        1 /* CHANGE ME WHEN WORKGROUP SIZE CHANGES */);
+    // TODO: Move elsewhere???
+    let CHUNK_SIZE = 10;
+    let startCircleIdx = id*CHUNK_SIZE;
+    if(startCircleIdx >= arrayLength(&circlesOld)) { return; }
+
+    // ACK so much looping and branching
+    // Can this be improved tactically, or do we need a whole new stategy?
+    for(var i = startCircleIdx; i < startCircleIdx + CHUNK_SIZE; i++) {
+        let currentCircle = circlesOld[i];
+        let currentRightEdge = currentCircle.center.y + currentCircle.radius;
+        let currentTop = currentCircle.center.x + currentCircle.radius;
+        let currentBottom = currentCircle.center.x - currentCircle.radius;
+        for (var j = i+1; j <  arrayLength(&circlesOld);j++) {
+            let other = circlesOld[j];
+            let otherLeftEdge = other.center.y - other.radius;
+            if(otherLeftEdge < currentRightEdge) { // if we overlap bounding box in y
+                let otherTop = other.center.x + other.radius;
+                let otherBottom = other.center.x = other.radius;
+                if(!(currentBottom > otherTop) && // if we overlap bounding box in x
+                   !(currentTop < otherBottom)) {
+                    let delta = currentCircle.center - other.center;
+                    let dist = length(delta);
+                    // TODO: branchless
+                    let contactDist = other.radius + circlesOld[i].radius;
+                    let diff = contactDist - dist;
+                    if(diff > 0) {
+                        // TODO: uneven movement
+                        // TODO: If they are moving in the same direction, less velocity change! If moving in diff, more velocity change
+                        // Perhaps use dot product or somesuch?
+                        newMe.center += (delta * (diff/dist)) / 2;
+                        newMe.velocity += (delta * (diff/dist)) / 2;
+                    }
+                }
+            } else {
+                break; // because we're sorted by left edge, once we find one that's too far, all the remaining will be too
+            }
+        }   
+    }
+
+ }
 // TODO: better workgroup size UPDATE THE GLOBAL INDEX CALC IF CHANGED
 @compute @workgroup_size(8, 8, 1) fn applyPhysics(
     @builtin(workgroup_id) workgroup_id : vec3<u32>,
